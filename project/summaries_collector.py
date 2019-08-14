@@ -22,7 +22,7 @@ class SummariesCollector:
         min_episode_length_var = tf.Variable(0, trainable=False, dtype=tf.float32)
         mean_episode_length_var = tf.Variable(0, trainable=False, dtype=tf.float32)
         max_episode_length_var = tf.Variable(0, trainable=False, dtype=tf.float32)
-#
+
         summaries = tf.summary.merge([
             tf.summary.scalar(prefix + '_min_episode_reward_var', min_episode_reward_var),
             tf.summary.scalar(prefix + '_mean_episode_reward_var', mean_episode_reward_var),
@@ -49,19 +49,12 @@ class SummariesCollector:
             })
 
 
-            #writer = tf.summary.FileWriter('/home/user_2/PycharmProjects/toms_project/project/tensorboard',
-            #                               sess.graph)  # for Tensorboard
-            #writer.add_graph(sess.graph)
-            #writer.add_summary(str(episode_rewards).strip('[]'))
-            #np.mean(episode_rewards)
-
             summary_writer.add_summary(summary_str, global_step)
             summary_writer.flush()
 
         return write_episode_summaries
 
     def write_train_optimization_summaries(self, summaries, global_step):
-        #hello
         for s in summaries:
             if s is not None:
                 self._train_summary_writer.add_summary(s, global_step)

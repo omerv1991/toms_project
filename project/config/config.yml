@@ -11,8 +11,8 @@ general:
   model_updates_per_cycle: 40
 #  model_updates_per_cycle: 400
   max_path_slack: 1.5
-  gpu_usage: 0.01
-  actor_gpu_usage: 0.01
+  gpu_usage: 0.9
+  actor_gpu_usage: 0.9
 #  actor_processes: 2
   actor_processes: 6
   write_train_summaries: 500
@@ -24,7 +24,7 @@ model:
 #  batch_size: 128
   batch_size: 512
   gamma: 0.99
-  random_action_probability: 0.12
+  random_action_probability: 0.2
   #random_noise_std: 0.05
 
 test:
