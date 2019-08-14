@@ -61,6 +61,7 @@ class SummariesCollector:
         return write_episode_summaries
 
     def write_train_optimization_summaries(self, summaries, global_step):
+        #hello
         for s in summaries:
             if s is not None:
                 self._train_summary_writer.add_summary(s, global_step)
