@@ -3,8 +3,6 @@ import time
 import os
 import tensorflow as tf
 import numpy as np
-import matplotlib
-#import matplotlib.pyplot as plt
 
 class SummariesCollector:
     def __init__(self, summaries_dir, model_name):

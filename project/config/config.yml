@@ -8,8 +8,8 @@ general:
 #  random_seed: 789
   updates_cycle_count: 10000
   episodes_per_update: 16
-  model_updates_per_cycle: 40
-#  model_updates_per_cycle: 400
+#  model_updates_per_cycle: 40
+  model_updates_per_cycle: 400
   max_path_slack: 1.5
   gpu_usage: 0.9
   actor_gpu_usage: 0.9
