@@ -22,11 +22,10 @@ def run_for_config(config, agent_config, env_generator, is_in_collab=False):
     now = datetime.datetime.fromtimestamp(time.time()).strftime('%Y_%m_%d_%H_%M_%S')
     model_name = now + '_' + model_name if model_name is not None else now
 
+    #random seed
     random_seed = config['general']['random_seed']
     np.random.seed(random_seed)
     random.seed(random_seed)
-    #----------check the diffrences----------23.7 mk
-    #tf.set_random_seed(random_seed)
     tf.compat.v1.set_random_seed
 
     # where we save all the outputs
@@ -39,8 +38,10 @@ def run_for_config(config, agent_config, env_generator, is_in_collab=False):
     config_copy_path = os.path.join(working_dir, 'models', model_name, 'config.yml')
     summaries_dir = os.path.join(working_dir, 'tensorboard', model_name)
 
+    #get enviroment constants
     state_dimension, action_dimension = env_generator.get_env_definitions()
 
+    #constract population manager
     population_manager = PopulationManager(config, agent_config)
 
     # generate networks
@@ -56,7 +57,6 @@ def run_for_config(config, agent_config, env_generator, is_in_collab=False):
     episode_runner = EpisodeRunner(config, env_generator.get_env_wrapper().get_env(), network_manager)
     #visualization_episode_runner = EpisodeRunner(
     #    config, env_generator.get_env_wrapper().get_env(), network_manager, is_in_collab=is_in_collab
-    #
 
     test_results = []
 
@@ -68,25 +68,13 @@ def run_for_config(config, agent_config, env_generator, is_in_collab=False):
 
 
         # get the predicted q value of the next state (action is taken from the target policy)
+        #network_manager.runing_network == 1 - network_manager.runing_network
         next_state_action_target_q = network_manager.predict_policy_q(next_state, sess, use_online_network=False)
 
         # compute critic label
         q_label = {}
 
-        #-----------------tensorboard summary added by omer 1108
-
-#        writer = tf.summary.FileWriter('/home/user_2/PycharmProjects/toms_project/project/tensorboard',
-#                                       sess.graph)  # for Tensorboard
-#        writer.add_graph(sess.graph)
-        count=0 # for later
-
-
-        #one hot vector, if placeholder and feed dict dont work for us
-        #indices = [0, 1, 2, 3]
-        #depth = batch_size
-        #one_hot_vector= tf.one_hot(indices, depth)
-
-        one_hot_vector=[]
+        one_hot_vector = []
         for i in range(batch_size):
             c= np.zeros(4)
             c[action[i]]=1
@@ -101,58 +89,31 @@ def run_for_config(config, agent_config, env_generator, is_in_collab=False):
 
 
 
-        # tensorboard addition by omer 1108
-        #count += 1
 
-        #tf.summary.scalar('Reward', reward_batch)
-        #tf.summary.merge_all()
-
-        #according to ella and itay summary is the first returned argument from sess.run
-#        writer.add_summary(summary, global_step=count)
-        # instead of sess.run suppose to be summary.
 
         terminated = [terminated,terminated,terminated,terminated]
         terminated= np.transpose(terminated)
-        #one_hot_vector = np.transpose(np.array(one_hot_vector))
-        """"
+
         for network_id in next_state_action_target_q:
-            q_label[network_id] = np.expand_dims(np.array(reward).reshape([-1,1]) + np.multiply(np.multiply(1 - np.array(terminated), gamma).reshape([-1,1]),(next_state_action_target_q[network_id])) , 1)
-        """
-        #np.amax(next_state_action_target_q[network_id])
-        temp_q_val=[]
-        for network_id in next_state_action_target_q:
-            #for i in range(batch_size):
-            #    temp_q_val.append(np.max(next_state_action_target_q[network_id][i]))
             q_label[network_id] = \
                 np.expand_dims(np.array(reward_batch) +
                                np.multiply(
                                    np.multiply(1 - np.array(terminated), gamma),
                                    np.array(next_state_action_target_q[network_id])), 1)
 
-            #q_label = np.squeeze(q_label[network_id])
         for network_id in next_state_action_target_q:
 
             q_label[network_id] = np.multiply(np.squeeze(np.array(q_label[network_id])) , np.array(one_hot_vector))
 
 
-
-
-        #FIX ONE HOT
-
         # train critic given the targets
         critic_optimization_summaries = network_manager.train_critics(current_state, q_label, sess)
 
-        # train actor
-        #actor_optimization_summaries = network_manager.train_actors(current_state, sess)
-
-
-
 
         # update target networks
+        # close because of double dqn
         network_manager.update_target_networks(sess)
         result = list(critic_optimization_summaries.values()) #+ list(actor_optimization_summaries.values())
-
-
         return result
 
     def compute_actor_score(episode_rewards, episode_lengths):
@@ -164,6 +125,7 @@ def run_for_config(config, agent_config, env_generator, is_in_collab=False):
             )
     ) as sess:
         sess.run(tf.global_variables_initializer())
+        #close because of double dqn
         network_manager.update_target_networks(sess)
 
         global_step = 0

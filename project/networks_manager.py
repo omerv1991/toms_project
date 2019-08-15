@@ -25,6 +25,10 @@ class NetworksManager:
         self.ids = list(self.networks.keys())
         self.scores = [0.0 for _ in self.ids]
 
+        #only for double dqn
+        #self.runing_network = 1
+
+
     def _arrange_by_ids(self, ordered_collection, ids=None):
         if ids is None:
             ids = self.ids
@@ -65,9 +69,13 @@ class NetworksManager:
 
         for network_id in ids:
             if use_online_network:
+            #if (self.runing_network == 1): #for double dqn
                 action_prediction.append(self.networks[network_id].online_q_value)
+
+
             else:
-                action_prediction.append(self.networks[network_id].target_action)
+                action_prediction.append(self.networks[network_id].target_q_value)
+
         action_results = sess.run(action_prediction, feed_dictionary)
         return self._arrange_by_ids(action_results, ids)
 
@@ -77,7 +85,6 @@ class NetworksManager:
         sess.run(critic_updates)
 
 
-    #----------TO ADD THE ONE HOT IN ARGUMENTS------------?
     def _generate_feed_dictionary(self, state_inputs, scalar_inputs=None):
         feed_dictionary = {self.state_inputs: state_inputs}#, self.one_hot_vector : one_hot_vector}
         if scalar_inputs is not None:
@@ -91,6 +98,7 @@ class NetworksManager:
         q_values = []
         for network_id in self.ids:
             if use_online_network:
+            #if (self.runing_network == 1):#for double dqn
                 q_values.append(self.networks[network_id].online_q_value)
             else:
                 q_values.append(self.networks[network_id].target_q_value)
